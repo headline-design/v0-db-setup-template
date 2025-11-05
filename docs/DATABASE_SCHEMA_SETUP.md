@@ -22,7 +22,7 @@ All this information is saved as JSON files in a `db-setup/` directory, giving v
 
 Create `scripts/build-db-setup.mjs` in your project:
 
-```javascript
+\`\`\`javascript
 // scripts/build-db-setup.mjs
 
 import fs from "fs";
@@ -224,14 +224,14 @@ main().catch(err => {
   console.error("❌ Unhandled error:", err);
   process.exit(1);
 });
-```
+\`\`\`
 
 ### Step 2: Create SQL Query Scripts
 
 Create a `db-setup/scripts/` directory and add the following SQL files:
 
 **`db-setup/scripts/get_all_tables_detailed.sql`**
-```sql
+\`\`\`sql
 SELECT
   t.table_schema,
   t.table_name,
@@ -254,10 +254,10 @@ LEFT JOIN information_schema.columns c
 WHERE t.table_schema NOT IN ('pg_catalog', 'information_schema')
   AND t.table_type IN ('BASE TABLE', 'VIEW')
 ORDER BY t.table_schema, t.table_name, c.ordinal_position;
-```
+\`\`\`
 
 **`db-setup/scripts/get_all_functions.sql`**
-```sql
+\`\`\`sql
 SELECT
   n.nspname as schema_name,
   p.proname as function_name,
@@ -275,10 +275,10 @@ LEFT JOIN pg_namespace n ON p.pronamespace = n.oid
 LEFT JOIN pg_language l ON p.prolang = l.oid
 WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY n.nspname, p.proname;
-```
+\`\`\`
 
 **`db-setup/scripts/get_all_indexes.sql`**
-```sql
+\`\`\`sql
 SELECT
   schemaname,
   tablename,
@@ -287,10 +287,10 @@ SELECT
 FROM pg_indexes
 WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY schemaname, tablename, indexname;
-```
+\`\`\`
 
 **`db-setup/scripts/get_all_rls_policies.sql`**
-```sql
+\`\`\`sql
 SELECT
   schemaname,
   tablename,
@@ -303,10 +303,10 @@ SELECT
 FROM pg_policies
 WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY schemaname, tablename, policyname;
-```
+\`\`\`
 
 **`db-setup/scripts/get_all_constraints.sql`**
-```sql
+\`\`\`sql
 SELECT
   tc.table_schema,
   tc.table_name,
@@ -330,10 +330,10 @@ LEFT JOIN information_schema.referential_constraints rc
   AND tc.table_schema = rc.constraint_schema
 WHERE tc.table_schema NOT IN ('pg_catalog', 'information_schema')
 ORDER BY tc.table_schema, tc.table_name, tc.constraint_name;
-```
+\`\`\`
 
 **`db-setup/scripts/get_all_triggers.sql`**
-```sql
+\`\`\`sql
 SELECT
   trigger_schema,
   trigger_name,
@@ -346,10 +346,10 @@ SELECT
 FROM information_schema.triggers
 WHERE trigger_schema NOT IN ('pg_catalog', 'information_schema')
 ORDER BY trigger_schema, event_object_table, trigger_name;
-```
+\`\`\`
 
 **`db-setup/scripts/get_extensions.sql`**
-```sql
+\`\`\`sql
 SELECT
   extname as extension_name,
   extversion as version,
@@ -357,45 +357,45 @@ SELECT
 FROM pg_extension e
 LEFT JOIN pg_namespace n ON e.extnamespace = n.oid
 ORDER BY extname;
-```
+\`\`\`
 
 ### Step 3: Add NPM Script
 
 Add the build script to your `package.json`:
 
-```json
+\`\`\`json
 {
   "scripts": {
     "build:db-setup": "node scripts/build-db-setup.mjs"
   }
 }
-```
+\`\`\`
 
 ### Step 4: Configure Environment Variables
 
 The script supports two connection methods:
 
 **Option A: Connection URL (Recommended)**
-```env
+\`\`\`env
 POSTGRES_URL_WITH_PASSWORD=postgres://user:password@host:5432/database
-```
+\`\`\`
 
 **Option B: Individual Variables**
-```env
+\`\`\`env
 POSTGRES_HOST=db.yourproject.supabase.co
 POSTGRES_PORT=5432
 POSTGRES_DATABASE=postgres
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_password
-```
+\`\`\`
 
 ### Step 5: Run the Script
 
 Generate your database schema files:
 
-```bash
+\`\`\`bash
 npm run build:db-setup
-```
+\`\`\`
 
 This creates a `db-setup/` directory with:
 - `tables.json` - Complete table and column information
@@ -411,10 +411,10 @@ This creates a `db-setup/` directory with:
 
 If your schema contains sensitive information, add to `.gitignore`:
 
-```
+\`\`\`
 db-setup/*.json
 !db-setup/scripts/
-```
+\`\`\`
 
 ## Benefits for v0
 
