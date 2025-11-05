@@ -1,6 +1,91 @@
 # Enhancing v0's Database Understanding with build-db-setup.mjs
 
-When working with databases in v0, providing comprehensive schema information helps v0 generate more accurate queries, understand your data relationships, and create better database interactions. The `build-db-setup.mjs` script extracts your complete database schema into structured JSON files that v0 can reference.
+> **🚨 IMPORTANT: This Script Runs Locally**
+> 
+> The `build-db-setup.mjs` script is **NOT** executed in v0. You run it on your **local machine** or in your **CI/CD pipeline** to generate schema files. These generated JSON files are then used by v0 to understand your database structure.
+>
+> **Workflow:**
+> 1. Run `npm run build:db-setup` **locally** on your machine
+> 2. The script generates JSON files in the `db-setup/` directory
+> 3. Commit these files to your repository
+> 4. v0 reads these files to understand your database schema
+> 5. v0 generates better, more accurate code based on this context
+
+## 🤖 Why This Transforms v0's Capabilities
+
+**This isn't just about extracting schema—it's about giving v0 the context to become a true development partner.**
+
+When v0 has access to your complete database schema, it gains deep understanding of your application that goes far beyond basic code generation:
+
+### Application Logic Understanding
+- **Data Relationships**: v0 sees how your tables connect and generates proper JOIN queries automatically
+- **Business Rules**: Constraints and check conditions reveal your business logic
+- **Domain Model**: Table and column names help v0 understand your application's purpose
+- **Data Flow**: Triggers and functions show v0 how data moves through your system
+
+### Security & Access Control
+- **RLS Policy Awareness**: v0 generates queries that respect your Row Level Security policies
+- **Permission Context**: v0 understands which users can access which data
+- **Security-First Code**: Generated code includes proper authorization checks
+- **Vulnerability Prevention**: v0 avoids patterns that could bypass your security model
+
+### Troubleshooting & Debugging
+- **Schema Mismatch Detection**: v0 can identify when code doesn't match your database
+- **Migration Assistance**: v0 helps update code when your schema changes
+- **Performance Analysis**: v0 suggests optimizations based on your indexes
+- **Error Context**: v0 provides schema-aware explanations for database errors
+
+### Code Quality & Accuracy
+- **Type Safety**: Generated TypeScript types match your actual database schema
+- **Validation Logic**: v0 generates validation that respects your constraints
+- **Null Handling**: v0 knows which fields are nullable and handles them correctly
+- **Enum Support**: v0 uses your database enums for type-safe code
+
+### Real-World Example
+
+**Without Schema Context:**
+\`\`\`typescript
+// v0 generates generic, potentially incorrect code
+const user = await db.query('SELECT * FROM users WHERE id = ?', [userId])
+// Missing: proper joins, RLS awareness, type safety
+\`\`\`
+
+**With Schema Context:**
+\`\`\`typescript
+// v0 generates accurate, schema-aware code
+const user = await db.query<UserWithProfile>(`
+  SELECT 
+    u.id,
+    u.email,
+    u.created_at,
+    p.display_name,
+    p.avatar_url,
+    p.bio
+  FROM auth.users u
+  LEFT JOIN public.profiles p ON u.id = p.user_id
+  WHERE u.id = $1
+  -- RLS policy: profiles.user_id must match auth.uid()
+`, [userId])
+
+// v0 knows:
+// - Exact column names and types
+// - The relationship between users and profiles
+// - RLS policy requirements
+// - Which fields are nullable
+\`\`\`
+
+### The Bottom Line
+
+**Schema extraction transforms v0 from a code generator into an AI that understands your application architecture.** It can:
+- Write queries that actually work with your database
+- Respect your security model automatically
+- Generate type-safe code that prevents runtime errors
+- Suggest improvements based on your schema design
+- Debug issues by understanding the full context
+
+This is the difference between "generate some database code" and "build features that integrate perfectly with my existing application."
+
+---
 
 ## What It Does
 
@@ -17,6 +102,8 @@ The script connects to your Postgres database and extracts:
 All this information is saved as JSON files in a `db-setup/` directory, giving v0 a complete picture of your database architecture.
 
 ## Setup Instructions
+
+> **📍 Execution Context:** All commands in this guide are run in your local terminal, not in v0's interface.
 
 ### Step 1: Add the Build Script
 
@@ -391,6 +478,8 @@ POSTGRES_PASSWORD=your_password
 
 ### Step 5: Run the Script
 
+> **💻 Run this on your local machine:**
+
 Generate your database schema files:
 
 \`\`\`bash
@@ -420,14 +509,39 @@ db-setup/*.json
 
 With these schema files in your project, v0 can:
 
-- Generate accurate SQL queries that match your exact table structure
-- Understand foreign key relationships for JOIN operations
-- Respect RLS policies when generating security-aware queries
-- Utilize existing indexes for optimized queries
-- Reference custom functions in generated code
-- Understand data types and constraints for proper validation
+### Query Generation & Optimization
+- **Accurate SQL**: Generate queries that match your exact table structure, column types, and naming conventions
+- **Smart JOINs**: Understand foreign key relationships and generate correct JOIN operations automatically
+- **Index Utilization**: Reference existing indexes to write performant queries
+- **Aggregate Awareness**: Know which columns support aggregation and grouping
+
+### Security & Validation
+- **RLS Policy Respect**: Generate security-aware queries that work with your Row Level Security policies
+- **Constraint Understanding**: Know your unique constraints, check constraints, and foreign keys
+- **Permission Context**: Understand which operations are allowed on which tables
+- **Injection Prevention**: Generate parameterized queries that respect your security model
+
+### Type Safety & Code Quality
+- **TypeScript Types**: Generate accurate types derived from your actual schema
+- **Null Handling**: Know which fields are nullable and handle them appropriately
+- **Enum Support**: Use database enums for type-safe code
+- **Default Values**: Understand column defaults and generate appropriate code
+
+### Advanced Features
+- **Custom Functions**: Reference and utilize your stored procedures and functions
+- **Trigger Awareness**: Understand side effects from database triggers
+- **Extension Support**: Know about installed extensions (PostGIS, pg_vector, etc.)
+- **View Understanding**: Work with database views as if they were tables
+
+### Developer Experience
+- **Context-Aware Suggestions**: Get suggestions that match your actual database
+- **Error Prevention**: Avoid referencing non-existent tables, columns, or functions
+- **Migration Safety**: Understand schema changes and update dependent code
+- **Documentation**: v0 can explain your schema and suggest improvements
 
 ## Keeping Schema Updated
+
+> **🔄 Local Workflow:** Run this command locally whenever your schema changes, then commit the updated JSON files.
 
 Run `npm run build:db-setup` whenever you:
 - Add or modify tables
