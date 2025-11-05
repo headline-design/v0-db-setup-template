@@ -1,10 +1,11 @@
 # Enhancing v0's Database Understanding with build-db-setup.mjs
 
 > **🚨 IMPORTANT: This Script Runs Locally**
-> 
+>
 > The `build-db-setup.mjs` script is **NOT** executed in v0. You run it on your **local machine** or in your **CI/CD pipeline** to generate schema files. These generated JSON files are then used by v0 to understand your database structure.
 >
 > **Workflow:**
+>
 > 1. Run `npm run build:db-setup` **locally** on your machine
 > 2. The script generates JSON files in the `db-setup/` directory
 > 3. Commit these files to your repository
@@ -18,24 +19,28 @@
 When v0 has access to your complete database schema, it gains deep understanding of your application that goes far beyond basic code generation:
 
 ### Application Logic Understanding
+
 - **Data Relationships**: v0 sees how your tables connect and generates proper JOIN queries automatically
 - **Business Rules**: Constraints and check conditions reveal your business logic
 - **Domain Model**: Table and column names help v0 understand your application's purpose
 - **Data Flow**: Triggers and functions show v0 how data moves through your system
 
 ### Security & Access Control
+
 - **RLS Policy Awareness**: v0 generates queries that respect your Row Level Security policies
 - **Permission Context**: v0 understands which users can access which data
 - **Security-First Code**: Generated code includes proper authorization checks
 - **Vulnerability Prevention**: v0 avoids patterns that could bypass your security model
 
 ### Troubleshooting & Debugging
+
 - **Schema Mismatch Detection**: v0 can identify when code doesn't match your database
 - **Migration Assistance**: v0 helps update code when your schema changes
 - **Performance Analysis**: v0 suggests optimizations based on your indexes
 - **Error Context**: v0 provides schema-aware explanations for database errors
 
 ### Code Quality & Accuracy
+
 - **Type Safety**: Generated TypeScript types match your actual database schema
 - **Validation Logic**: v0 generates validation that respects your constraints
 - **Null Handling**: v0 knows which fields are nullable and handles them correctly
@@ -44,17 +49,19 @@ When v0 has access to your complete database schema, it gains deep understanding
 ### Real-World Example
 
 **Without Schema Context:**
-\`\`\`typescript
+
+```typescript
 // v0 generates generic, potentially incorrect code
 const user = await db.query('SELECT * FROM users WHERE id = ?', [userId])
 // Missing: proper joins, RLS awareness, type safety
-\`\`\`
+```
 
 **With Schema Context:**
-\`\`\`typescript
+
+```typescript
 // v0 generates accurate, schema-aware code
 const user = await db.query<UserWithProfile>(`
-  SELECT 
+  SELECT
     u.id,
     u.email,
     u.created_at,
@@ -72,11 +79,12 @@ const user = await db.query<UserWithProfile>(`
 // - The relationship between users and profiles
 // - RLS policy requirements
 // - Which fields are nullable
-\`\`\`
+```
 
 ### The Bottom Line
 
 **Schema extraction transforms v0 from a code generator into an AI that understands your application architecture.** It can:
+
 - Write queries that actually work with your database
 - Respect your security model automatically
 - Generate type-safe code that prevents runtime errors
@@ -109,7 +117,7 @@ All this information is saved as JSON files in a `db-setup/` directory, giving v
 
 Create `scripts/build-db-setup.mjs` in your project:
 
-\`\`\`javascript
+```javascript
 // scripts/build-db-setup.mjs
 
 import fs from "fs";
@@ -311,14 +319,15 @@ main().catch(err => {
   console.error("❌ Unhandled error:", err);
   process.exit(1);
 });
-\`\`\`
+```
 
 ### Step 2: Create SQL Query Scripts
 
 Create a `db-setup/scripts/` directory and add the following SQL files:
 
 **`db-setup/scripts/get_all_tables_detailed.sql`**
-\`\`\`sql
+
+```sql
 SELECT
   t.table_schema,
   t.table_name,
@@ -341,10 +350,11 @@ LEFT JOIN information_schema.columns c
 WHERE t.table_schema NOT IN ('pg_catalog', 'information_schema')
   AND t.table_type IN ('BASE TABLE', 'VIEW')
 ORDER BY t.table_schema, t.table_name, c.ordinal_position;
-\`\`\`
+```
 
 **`db-setup/scripts/get_all_functions.sql`**
-\`\`\`sql
+
+```sql
 SELECT
   n.nspname as schema_name,
   p.proname as function_name,
@@ -362,10 +372,11 @@ LEFT JOIN pg_namespace n ON p.pronamespace = n.oid
 LEFT JOIN pg_language l ON p.prolang = l.oid
 WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY n.nspname, p.proname;
-\`\`\`
+```
 
 **`db-setup/scripts/get_all_indexes.sql`**
-\`\`\`sql
+
+```sql
 SELECT
   schemaname,
   tablename,
@@ -374,10 +385,11 @@ SELECT
 FROM pg_indexes
 WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY schemaname, tablename, indexname;
-\`\`\`
+```
 
 **`db-setup/scripts/get_all_rls_policies.sql`**
-\`\`\`sql
+
+```sql
 SELECT
   schemaname,
   tablename,
@@ -390,10 +402,11 @@ SELECT
 FROM pg_policies
 WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY schemaname, tablename, policyname;
-\`\`\`
+```
 
 **`db-setup/scripts/get_all_constraints.sql`**
-\`\`\`sql
+
+```sql
 SELECT
   tc.table_schema,
   tc.table_name,
@@ -417,10 +430,11 @@ LEFT JOIN information_schema.referential_constraints rc
   AND tc.table_schema = rc.constraint_schema
 WHERE tc.table_schema NOT IN ('pg_catalog', 'information_schema')
 ORDER BY tc.table_schema, tc.table_name, tc.constraint_name;
-\`\`\`
+```
 
 **`db-setup/scripts/get_all_triggers.sql`**
-\`\`\`sql
+
+```sql
 SELECT
   trigger_schema,
   trigger_name,
@@ -433,10 +447,11 @@ SELECT
 FROM information_schema.triggers
 WHERE trigger_schema NOT IN ('pg_catalog', 'information_schema')
 ORDER BY trigger_schema, event_object_table, trigger_name;
-\`\`\`
+```
 
 **`db-setup/scripts/get_extensions.sql`**
-\`\`\`sql
+
+```sql
 SELECT
   extname as extension_name,
   extversion as version,
@@ -444,37 +459,39 @@ SELECT
 FROM pg_extension e
 LEFT JOIN pg_namespace n ON e.extnamespace = n.oid
 ORDER BY extname;
-\`\`\`
+```
 
 ### Step 3: Add NPM Script
 
 Add the build script to your `package.json`:
 
-\`\`\`json
+```json
 {
   "scripts": {
     "build:db-setup": "node scripts/build-db-setup.mjs"
   }
 }
-\`\`\`
+```
 
 ### Step 4: Configure Environment Variables
 
 The script supports two connection methods:
 
 **Option A: Connection URL (Recommended)**
-\`\`\`env
+
+```env
 POSTGRES_URL_WITH_PASSWORD=postgres://user:password@host:5432/database
-\`\`\`
+```
 
 **Option B: Individual Variables**
-\`\`\`env
+
+```env
 POSTGRES_HOST=db.yourproject.supabase.co
 POSTGRES_PORT=5432
 POSTGRES_DATABASE=postgres
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_password
-\`\`\`
+```
 
 ### Step 5: Run the Script
 
@@ -482,11 +499,12 @@ POSTGRES_PASSWORD=your_password
 
 Generate your database schema files:
 
-\`\`\`bash
+```bash
 npm run build:db-setup
-\`\`\`
+```
 
 This creates a `db-setup/` directory with:
+
 - `tables.json` - Complete table and column information
 - `functions.json` - Custom database functions
 - `indexes.json` - Index definitions
@@ -500,40 +518,45 @@ This creates a `db-setup/` directory with:
 
 If your schema contains sensitive information, add to `.gitignore`:
 
-\`\`\`
+```
 db-setup/*.json
 !db-setup/scripts/
-\`\`\`
+```
 
 ## Benefits for v0
 
 With these schema files in your project, v0 can:
 
 ### Query Generation & Optimization
+
 - **Accurate SQL**: Generate queries that match your exact table structure, column types, and naming conventions
 - **Smart JOINs**: Understand foreign key relationships and generate correct JOIN operations automatically
 - **Index Utilization**: Reference existing indexes to write performant queries
 - **Aggregate Awareness**: Know which columns support aggregation and grouping
 
 ### Security & Validation
+
 - **RLS Policy Respect**: Generate security-aware queries that work with your Row Level Security policies
 - **Constraint Understanding**: Know your unique constraints, check constraints, and foreign keys
 - **Permission Context**: Understand which operations are allowed on which tables
 - **Injection Prevention**: Generate parameterized queries that respect your security model
 
 ### Type Safety & Code Quality
+
 - **TypeScript Types**: Generate accurate types derived from your actual schema
 - **Null Handling**: Know which fields are nullable and handle them appropriately
 - **Enum Support**: Use database enums for type-safe code
 - **Default Values**: Understand column defaults and generate appropriate code
 
 ### Advanced Features
+
 - **Custom Functions**: Reference and utilize your stored procedures and functions
 - **Trigger Awareness**: Understand side effects from database triggers
 - **Extension Support**: Know about installed extensions (PostGIS, pg_vector, etc.)
 - **View Understanding**: Work with database views as if they were tables
 
 ### Developer Experience
+
 - **Context-Aware Suggestions**: Get suggestions that match your actual database
 - **Error Prevention**: Avoid referencing non-existent tables, columns, or functions
 - **Migration Safety**: Understand schema changes and update dependent code
@@ -544,6 +567,7 @@ With these schema files in your project, v0 can:
 > **🔄 Local Workflow:** Run this command locally whenever your schema changes, then commit the updated JSON files.
 
 Run `npm run build:db-setup` whenever you:
+
 - Add or modify tables
 - Create new functions or triggers
 - Update RLS policies
@@ -554,21 +578,25 @@ Consider adding this to your development workflow or CI/CD pipeline to keep sche
 ## Troubleshooting
 
 **Connection Issues**
+
 - Verify your database credentials are correct
 - Ensure your IP is whitelisted (for cloud databases)
 - Check that SSL is properly configured
 
 **Missing SQL Files**
+
 - Ensure all SQL files exist in `db-setup/scripts/`
 - Verify file names match exactly (case-sensitive)
 
 **Permission Errors**
+
 - Your database user needs read access to system tables
 - For Supabase, use the connection string from your project settings
 
 ## Why Not Drizzle?
 
 While Drizzle is excellent for schema management and migrations, this approach:
+
 - Works with any existing database without requiring Drizzle setup
 - Captures runtime information like RLS policies and triggers
 - Provides a complete snapshot of your actual database state
